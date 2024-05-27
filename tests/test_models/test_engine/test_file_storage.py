@@ -67,21 +67,6 @@ test_file_storage.py'])
             self.assertTrue(len(func[1].__doc__) >= 1,
                             "{:s} method needs a docstring".format(func[0]))
 
-    def setUp(self):
-        self.state = State(name="California")
-        self.state.save()
-
-    def test_get_file(self):
-        state = storage.get(State, self.state.id)
-        self.assertIsNotNone(state)
-        self.assertEqual(state.id, self.state.id)
-
-    def test_count_file(self):
-        initial_count = storage.count()
-        state_count = storage.count(State)
-        self.assertEqual(state_count, 1)
-        self.assertEqual(storage.count(), initial_count)
-
 
 class TestFileStorage(unittest.TestCase):
     """Test the FileStorage class"""
@@ -128,3 +113,27 @@ class TestFileStorage(unittest.TestCase):
         with open("file.json", "r") as f:
             js = f.read()
         self.assertEqual(json.loads(string), json.loads(js))
+
+    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
+    def test_get(self):
+        """Test that retrieve objects from file.json"""
+        state = State(name='Nairobi')
+        models.storage.new(state)
+        models.storage.save()
+
+        state_obj = models.storage.get(State, state.id)
+
+        self.assertEqual(state, state_obj)
+
+    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
+    def test_count(self):
+        """Test that counts objects from file.json"""
+        objs_from_all = len(models.storage.all())
+        objs_from_count = models.storage.count()
+
+        self.assertEqual(objs_from_all, objs_from_count)
+
+        states_from_all = len(models.storage.all(State))
+        states_from_count = models.storage.count(State)
+
+        self.assertEqual(states_from_all, states_from_count)
